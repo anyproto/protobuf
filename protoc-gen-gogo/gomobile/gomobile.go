@@ -112,7 +112,9 @@ func (g *gomobile) Generate(file *generator.FileDescriptor) {
 }
 
 // GenerateImports generates the import declaration for this file.
-func (g *gomobile) GenerateImports(file *generator.FileDescriptor) {}
+func (g *gomobile) GenerateImports(file *generator.FileDescriptor) {
+	g.P(`context "context"`)
+}
 
 // reservedClientName records whether a client name is reserved on the client side.
 var reservedClientName = map[string]bool{
@@ -222,6 +224,9 @@ func (g *gomobile) generateHandlerSignatureWithParamNames(handlerName string, me
 	}
 
 	var reqArgs []string
+	if os.Getenv("GOGO_GRPC_SERVER_METHOD_NO_CONTEXT") != "1" {
+		reqArgs = append(reqArgs, "ctx context.Context")
+	}
 	ret := "error"
 	if !method.GetServerStreaming() && !method.GetClientStreaming() {
 		ret = "*" + g.typeName(method.GetOutputType()) + ""
@@ -243,6 +248,9 @@ func (g *gomobile) generateHandlerSignature(handlerName string, method *pb.Metho
 
 	var reqArgs []string
 	ret := ""
+	if os.Getenv("GOGO_GRPC_SERVER_METHOD_NO_CONTEXT") != "1" {
+		reqArgs = append(reqArgs, "context.Context")
+	}
 	if !method.GetServerStreaming() && !method.GetClientStreaming() {
 		ret = "*" + g.typeName(method.GetOutputType())
 	}
@@ -284,7 +292,7 @@ func (g *gomobile) generateHandlerMethod(handlerVar string, method *pb.MethodDes
 		g.P("return resp")
 		g.P("}")
 		g.P()
-		g.P("resp, _ = ", handlerVar, ".", methName, "(in).Marshal()")
+		g.P("resp, _ = ", handlerVar, ".", methName, "(context.Background(), in).Marshal()")
 		g.P("return resp")
 
 		g.P("}")
