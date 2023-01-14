@@ -501,6 +501,7 @@ var marshalingTests = []struct {
 	{"Timestamp", marshaler, &pb.KnownTypes{Ts: &types.Timestamp{Seconds: 14e8, Nanos: 0}}, `{"ts":"2014-05-13T16:53:20Z"}`},
 	{"number Value", marshaler, &pb.KnownTypes{Val: &types.Value{Kind: &types.Value_NumberValue{NumberValue: 1}}}, `{"val":1}`},
 	{"null Value", marshaler, &pb.KnownTypes{Val: &types.Value{Kind: &types.Value_NullValue{NullValue: types.NullValue_NULL_VALUE}}}, `{"val":null}`},
+	{"nil Value", marshaler, &pb.KnownTypes{Val: &types.Value{Kind: nil}}, `{"val":null}`},
 	{"string number value", marshaler, &pb.KnownTypes{Val: &types.Value{Kind: &types.Value_StringValue{StringValue: "9223372036854775807"}}}, `{"val":"9223372036854775807"}`},
 	{"list of lists Value", marshaler, &pb.KnownTypes{Val: &types.Value{
 		Kind: &types.Value_ListValue{ListValue: &types.ListValue{

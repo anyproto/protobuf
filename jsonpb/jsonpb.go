@@ -268,8 +268,9 @@ func (m *Marshaler) marshalObject(out *errWriter, v proto.Message, indent, typeU
 			// Value has a single oneof.
 			kind := s.Field(0)
 			if kind.IsNil() {
-				// "absence of any variant indicates an error"
-				return errors.New("nil Value")
+				// "it supposed to be bad, but we don't want to fail here, so assume that nil is types.NullValue"
+				out.write("null")
+				return out.err
 			}
 			// oneof -> *T -> T -> T.F
 			x := kind.Elem().Elem().Field(0)
