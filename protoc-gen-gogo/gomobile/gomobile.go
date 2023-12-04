@@ -214,7 +214,65 @@ func (g *gomobile) generateService(file *generator.FileDescriptor, service *pb.S
 	g.P("func CommandMobile(cmd string, data []byte, callback MessageHandler) {")
 	g.P("CommandAsync(cmd, data, callback.Handle)")
 	g.P("}")
+
 	g.P()
+
+	g.generateWrapper(handlerName, service)
+
+	g.P()
+}
+
+// generateWrapper creates the unimplemented server struct
+func (g *gomobile) generateWrapper(handlerName string, service *pb.ServiceDescriptorProto) {
+	handlerType := handlerName + "Handler"
+	g.P("type ", handlerType, "Proxy struct {")
+	g.P("client ", handlerType)
+	g.P("interceptor func(ctx context.Context, methodName string, actualCall func(ctx context.Context, req any) any) any")
+	g.P("}")
+	g.P()
+
+	for _, method := range service.Method {
+		if method.GetServerStreaming() || method.GetClientStreaming() {
+			// not supported
+			continue
+		}
+		g.generateServerMethodConcrete(handlerName, method)
+	}
+	g.P()
+}
+
+// generateServerMethodConcrete returns unimplemented methods which ensure forward compatibility
+func (g *gomobile) generateServerMethodConcrete(handlerName string, method *pb.MethodDescriptorProto) {
+	header := g.generateServerSignatureWithParamNames(handlerName, method)
+	g.P("func (h *", handlerName, "HandlerProxy) ", header, " {")
+	methodName := generator.CamelCase(method.GetName())
+	g.P("return h.interceptor(ctx, \"", methodName, "\", func(ctx context.Context, req any) (any) {")
+	g.P("return h.client.", methodName, "(ctx, req.(*", g.typeName(method.GetInputType()), "))")
+	g.P("}).(*", g.typeName(method.GetOutputType()), ")")
+
+	g.P("}")
+}
+
+// generateServerSignatureWithParamNames returns the server-side signature for a method with parameter names.
+func (g *gomobile) generateServerSignatureWithParamNames(servName string, method *pb.MethodDescriptorProto) string {
+	origMethName := method.GetName()
+	methName := generator.CamelCase(origMethName)
+	if reservedClientName[methName] {
+		methName += "_"
+	}
+
+	var reqArgs []string
+	var ret string
+	if !method.GetServerStreaming() && !method.GetClientStreaming() {
+		reqArgs = append(reqArgs, "ctx context.Context")
+		var errSuffix = ""
+		ret = "(*" + g.typeName(method.GetOutputType()) + errSuffix + ")"
+	}
+	if !method.GetClientStreaming() {
+		reqArgs = append(reqArgs, "req *"+g.typeName(method.GetInputType()))
+	}
+
+	return methName + "(" + strings.Join(reqArgs, ", ") + ") " + ret
 }
 
 // generateHandlerSignatureWithParamNames returns the handler-side signature for a method with parameter names.
