@@ -227,7 +227,7 @@ func (g *gomobile) generateWrapper(handlerName string, service *pb.ServiceDescri
 	handlerType := handlerName + "Handler"
 	g.P("type ", handlerType, "Proxy struct {")
 	g.P("client ", handlerType)
-	g.P("interceptor func(ctx context.Context, methodName string, actualCall func(ctx context.Context, req any) any) any")
+	g.P("interceptors []func(ctx context.Context, req any, methodName string, actualCall func(ctx context.Context, req any) (any, error)) (any, error)")
 	g.P("}")
 	g.P()
 
@@ -246,10 +246,15 @@ func (g *gomobile) generateServerMethodConcrete(handlerName string, method *pb.M
 	header := g.generateServerSignatureWithParamNames(handlerName, method)
 	g.P("func (h *", handlerName, "HandlerProxy) ", header, " {")
 	methodName := generator.CamelCase(method.GetName())
-	g.P("return h.interceptor(ctx, \"", methodName, "\", func(ctx context.Context, req any) (any) {")
-	g.P("return h.client.", methodName, "(ctx, req.(*", g.typeName(method.GetInputType()), "))")
-	g.P("}).(*", g.typeName(method.GetOutputType()), ")")
-
+	g.P("actualCall := func(ctx context.Context, req any) (any, error) {")
+	g.P("return h.client.", methodName, "(ctx, req.(*", g.typeName(method.GetInputType()), ")), nil")
+	g.P("}")
+	g.P("for _, interceptor := range h.interceptors {")
+	g.P("toCall := actualCall")
+	g.P("actualCall = func(ctx context.Context, req any) (any, error) { return interceptor(ctx, req, \"", methodName, "\", toCall) }")
+	g.P("}")
+	g.P("call, _ := actualCall(ctx, req)")
+	g.P("return call.(*", g.typeName(method.GetOutputType()), ")")
 	g.P("}")
 }
 
