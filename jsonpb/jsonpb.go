@@ -57,6 +57,7 @@ import (
 
 const secondInNanos = int64(time.Second / time.Nanosecond)
 const maxSecondsInDuration = 315576000000
+const jsonDelimiter = "_"
 
 // Marshaler is a configurable object for converting between
 // protocol buffer objects and a JSON representation for them.
@@ -108,6 +109,7 @@ func defaultResolveAny(typeUrl string) (proto.Message, error) {
 // parsed.
 //
 // The JSON marshaling must follow the proto to JSON specification:
+//
 //	https://developers.google.com/protocol-buffers/docs/proto3#json
 type JSONPBMarshaler interface {
 	MarshalJSONPB(*Marshaler) ([]byte, error)
@@ -119,6 +121,7 @@ type JSONPBMarshaler interface {
 // produced.
 //
 // The JSON unmarshaling must follow the JSON to proto specification:
+//
 //	https://developers.google.com/protocol-buffers/docs/proto3#json
 type JSONPBUnmarshaler interface {
 	UnmarshalJSONPB(*Unmarshaler, []byte) error
@@ -506,7 +509,7 @@ func (m *Marshaler) marshalField(out *errWriter, prop *proto.Properties, v refle
 		out.write(m.Indent)
 	}
 	out.write(`"`)
-	out.write(prop.JSONName)
+	out.write(fmt.Sprintf("%d%s%s", prop.Tag, jsonDelimiter, prop.JSONName))
 	out.write(`":`)
 	if m.Indent != "" {
 		out.write(" ")
@@ -1035,31 +1038,17 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 
 	// Handle nested messages.
 	if targetType.Kind() == reflect.Struct {
-		var jsonFields map[string]json.RawMessage
-		if err := json.Unmarshal(inputValue, &jsonFields); err != nil {
+		jsonFields, err := getJsonFields(inputValue)
+		if err != nil {
 			return err
 		}
 
 		consumeField := func(prop *proto.Properties) (json.RawMessage, bool) {
-			// Be liberal in what names we accept; both orig_name and camelName are okay.
-			fieldNames := acceptedJSONFieldNames(prop)
-
-			vOrig, okOrig := jsonFields[fieldNames.orig]
-			vCamel, okCamel := jsonFields[fieldNames.camel]
-			if !okOrig && !okCamel {
-				return nil, false
+			if raw, ok := jsonFields[prop.Tag]; ok {
+				delete(jsonFields, prop.Tag)
+				return raw, true
 			}
-			// If, for some reason, both are present in the data, favour the camelName.
-			var raw json.RawMessage
-			if okOrig {
-				raw = vOrig
-				delete(jsonFields, fieldNames.orig)
-			}
-			if okCamel {
-				raw = vCamel
-				delete(jsonFields, fieldNames.camel)
-			}
-			return raw, true
+			return nil, false
 		}
 
 		sprops := proto.GetProperties(targetType)
@@ -1090,35 +1079,6 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 					return err
 				}
 			}
-		}
-		// Handle proto2 extensions.
-		if len(jsonFields) > 0 {
-			if ep, ok := target.Addr().Interface().(proto.Message); ok {
-				for _, ext := range proto.RegisteredExtensions(ep) {
-					name := fmt.Sprintf("[%s]", ext.Name)
-					raw, ok := jsonFields[name]
-					if !ok {
-						continue
-					}
-					delete(jsonFields, name)
-					nv := reflect.New(reflect.TypeOf(ext.ExtensionType).Elem())
-					if err := u.unmarshalValue(nv.Elem(), raw, nil); err != nil {
-						return err
-					}
-					if err := proto.SetExtension(ep, ext, nv.Interface()); err != nil {
-						return err
-					}
-				}
-			}
-		}
-		if !u.AllowUnknownFields && len(jsonFields) > 0 {
-			// Pick any field to be the scapegoat.
-			var f string
-			for fname := range jsonFields {
-				f = fname
-				break
-			}
-			return fmt.Errorf("unknown field %q in %v", f, targetType)
 		}
 		return nil
 	}
@@ -1230,6 +1190,19 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 
 	// Use the encoding/json for parsing other value types.
 	return json.Unmarshal(inputValue, target.Addr().Interface())
+}
+
+func getJsonFields(inputValue json.RawMessage) (map[int]json.RawMessage, error) {
+	var jsonFields map[string]json.RawMessage
+	if err := json.Unmarshal(inputValue, &jsonFields); err != nil {
+		return nil, err
+	}
+	jsonTagFields := map[int]json.RawMessage{}
+	for key, val := range jsonFields {
+		tag, _ := strconv.Atoi(strings.Split(key, jsonDelimiter)[0])
+		jsonTagFields[tag] = val
+	}
+	return jsonTagFields, nil
 }
 
 func unquote(s string) (string, error) {
