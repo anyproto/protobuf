@@ -41,6 +41,7 @@ func main() {
 	vanity.ForEachFile(files, vanity.TurnOnMarshalerAll)
 	vanity.ForEachFile(files, vanity.TurnOnSizerAll)
 	vanity.ForEachFile(files, vanity.TurnOnUnmarshalerAll)
+	vanity.ForEachFile(files, vanity.TurnOnStable_MarshalerAll)
 
 	vanity.ForEachFieldInFilesExcludingExtensions(vanity.OnlyProto2(files), vanity.TurnOffNullableForNativeTypesWithoutDefaultsOnly)
 	vanity.ForEachFile(files, vanity.TurnOffGoUnrecognizedAll)
