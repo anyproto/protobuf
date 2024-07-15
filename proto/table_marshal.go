@@ -2910,6 +2910,17 @@ type newMarshaler interface {
 	XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 }
 
+// newAppendMarshaler is the interface representing objects that can marshal themselves and append to buffer.
+//
+// This exists to support protoc-gen-go generated messages.
+// The proto package will stop type-asserting to this interface in the future.
+//
+// DO NOT DEPEND ON THIS.
+type newAppendMarshaler interface {
+	newMarshaler
+	XXX_MarshalAppend(b []byte, newLen int) ([]byte, error)
+}
+
 // Size returns the encoded size of a protocol buffer message.
 // This is the main entry point.
 func Size(pb Message) int {
@@ -2952,6 +2963,22 @@ func Marshal(pb Message) ([]byte, error) {
 	siz := info.Size(pb)
 	b := make([]byte, 0, siz)
 	return info.Marshal(b, pb, false)
+}
+
+// MarshalAppend takes a protocol buffer message
+// and encodes it into the wire format, returning the data.
+// This is the main entry point.
+func MarshalAppend(buf []byte, pb Message) ([]byte, error) {
+	if m, ok := pb.(newAppendMarshaler); ok {
+		siz := m.XXX_Size()
+		if cap(buf) < len(buf)+siz {
+			newBuf := make([]byte, 0, (len(buf)+siz)*2)
+			copy(newBuf, buf)
+			buf = newBuf
+		}
+		return m.XXX_MarshalAppend(buf, len(buf)+siz)
+	}
+	return nil, fmt.Errorf("proto: MarshalAppend not supported by %T", pb)
 }
 
 // Marshal takes a protocol buffer message

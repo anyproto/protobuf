@@ -2720,10 +2720,11 @@ func (g *Generator) generateCommonMethods(mc *msgCtx) {
 	g.Out()
 	g.P("}")
 
+	isMarshalerOrUnsafe := gogoproto.IsMarshaler(g.file.FileDescriptorProto, mc.message.DescriptorProto) ||
+		gogoproto.IsUnsafeMarshaler(g.file.FileDescriptorProto, mc.message.DescriptorProto)
 	g.P("func (m *", mc.goName, ") XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {")
 	g.In()
-	if gogoproto.IsMarshaler(g.file.FileDescriptorProto, mc.message.DescriptorProto) ||
-		gogoproto.IsUnsafeMarshaler(g.file.FileDescriptorProto, mc.message.DescriptorProto) {
+	if isMarshalerOrUnsafe {
 		if gogoproto.IsStableMarshaler(g.file.FileDescriptorProto, mc.message.DescriptorProto) {
 			g.P("b = b[:cap(b)]")
 			g.P("n, err := m.MarshalToSizedBuffer(b)")
@@ -2756,6 +2757,21 @@ func (g *Generator) generateCommonMethods(mc *msgCtx) {
 	}
 	g.Out()
 	g.P("}")
+
+	if isMarshalerOrUnsafe {
+		g.P("func (m *", mc.goName, ") XXX_MarshalAppend(b []byte, newLen int) ([]byte, error) {")
+		g.In()
+		g.P("b = b[:newLen]")
+		g.P("_, err := m.MarshalToSizedBuffer(b)")
+		g.P("if err != nil {")
+		g.In()
+		g.P("return nil, err")
+		g.Out()
+		g.P("}")
+		g.P("return b, nil")
+		g.Out()
+		g.P("}")
+	}
 
 	g.P("func (m *", mc.goName, ") XXX_Merge(src ", g.Pkg["proto"], ".Message) {")
 	g.In()
