@@ -6,8 +6,8 @@ package imported
 import (
 	bytes "bytes"
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
+	_ "github.com/anyproto/protobuf/gogoproto"
+	proto "github.com/anyproto/protobuf/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"

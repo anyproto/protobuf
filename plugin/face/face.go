@@ -1,7 +1,7 @@
 // Protocol Buffers for Go with Gadgets
 //
 // Copyright (c) 2013, The GoGo Authors. All rights reserved.
-// http://github.com/gogo/protobuf
+// http://github.com/anyproto/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -50,21 +50,21 @@ The face plugin also generates a test given it is enabled using one of the follo
 
 Let us look at:
 
-  github.com/gogo/protobuf/test/example/example.proto
+	github.com/anyproto/protobuf/test/example/example.proto
 
 Btw all the output can be seen at:
 
-  github.com/gogo/protobuf/test/example/*
+	github.com/anyproto/protobuf/test/example/*
 
 The following message:
 
-  message A {
-	option (gogoproto.face) = true;
-	option (gogoproto.goproto_getters) = false;
-	optional string Description = 1 [(gogoproto.nullable) = false];
-	optional int64 Number = 2 [(gogoproto.nullable) = false];
-	optional bytes Id = 3 [(gogoproto.customtype) = "github.com/gogo/protobuf/test/custom.Uuid", (gogoproto.nullable) = false];
-  }
+	  message A {
+		option (gogoproto.face) = true;
+		option (gogoproto.goproto_getters) = false;
+		optional string Description = 1 [(gogoproto.nullable) = false];
+		optional int64 Number = 2 [(gogoproto.nullable) = false];
+		optional bytes Id = 3 [(gogoproto.customtype) = "github.com/anyproto/protobuf/test/custom.Uuid", (gogoproto.nullable) = false];
+	  }
 
 given to the face plugin, will generate the following code:
 
@@ -126,13 +126,12 @@ Implementing The Proto method is done with the helper function NewAFromFace:
 	}
 
 just the like TestProto method which is used to test the NewAFromFace function.
-
 */
 package face
 
 import (
-	"github.com/gogo/protobuf/gogoproto"
-	"github.com/gogo/protobuf/protoc-gen-gogo/generator"
+	"github.com/anyproto/protobuf/gogoproto"
+	"github.com/anyproto/protobuf/protoc-gen-gogo/generator"
 )
 
 type plugin struct {
@@ -154,7 +153,7 @@ func (p *plugin) Init(g *generator.Generator) {
 
 func (p *plugin) Generate(file *generator.FileDescriptor) {
 	p.PluginImports = generator.NewPluginImports(p.Generator)
-	protoPkg := p.NewImport("github.com/gogo/protobuf/proto")
+	protoPkg := p.NewImport("github.com/anyproto/protobuf/proto")
 	if !gogoproto.ImportsGoGoProto(file.FileDescriptorProto) {
 		protoPkg = p.NewImport("github.com/golang/protobuf/proto")
 	}

@@ -12,7 +12,7 @@ It has these top-level messages:
 */
 package mapdefaults
 
-import proto "github.com/gogo/protobuf/proto"
+import proto "github.com/anyproto/protobuf/proto"
 import fmt "fmt"
 import math "math"
 

@@ -1,7 +1,7 @@
 // Protocol Buffers for Go with Gadgets
 //
 // Copyright (c) 2013, The GoGo Authors. All rights reserved.
-// http://github.com/gogo/protobuf
+// http://github.com/anyproto/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -34,7 +34,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/anyproto/protobuf/proto"
 )
 
 //func SetRawExtension(base extendableProto, id int32, b []byte) {
@@ -145,7 +145,7 @@ func TestUnsafeExtension(t *testing.T) {
 	check(t, m, fieldA, E_FieldA)
 }
 
-//See another version of this test in proto/extensions_test.go
+// See another version of this test in proto/extensions_test.go
 func TestGetExtensionStability(t *testing.T) {
 	check := func(m *NoExtensionsMap) bool {
 		ext1, err := proto.GetExtension(m, E_FieldB1)

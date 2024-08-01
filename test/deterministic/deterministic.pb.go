@@ -6,9 +6,9 @@ package deterministic
 import (
 	bytes "bytes"
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_sortkeys "github.com/gogo/protobuf/sortkeys"
+	_ "github.com/anyproto/protobuf/gogoproto"
+	proto "github.com/anyproto/protobuf/proto"
+	github_com_gogo_protobuf_sortkeys "github.com/anyproto/protobuf/sortkeys"
 	math "math"
 	math_bits "math/bits"
 )

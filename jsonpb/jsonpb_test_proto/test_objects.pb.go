@@ -5,8 +5,8 @@ package jsonpb
 
 import (
 	fmt "fmt"
-	proto "github.com/gogo/protobuf/proto"
-	types "github.com/gogo/protobuf/types"
+	proto "github.com/anyproto/protobuf/proto"
+	types "github.com/anyproto/protobuf/types"
 	math "math"
 )
 

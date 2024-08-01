@@ -5,9 +5,9 @@ package enumprefix
 
 import (
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	test "github.com/gogo/protobuf/test"
+	_ "github.com/anyproto/protobuf/gogoproto"
+	proto "github.com/anyproto/protobuf/proto"
+	test "github.com/anyproto/protobuf/test"
 	math "math"
 )
 

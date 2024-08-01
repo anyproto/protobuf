@@ -1,7 +1,7 @@
 // Protocol Buffers for Go with Gadgets
 //
 // Copyright (c) 2013, The GoGo Authors. All rights reserved.
-// http://github.com/gogo/protobuf
+// http://github.com/anyproto/protobuf
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
@@ -31,8 +31,8 @@ package io_test
 import (
 	"bytes"
 	"encoding/binary"
-	"github.com/gogo/protobuf/io"
-	"github.com/gogo/protobuf/test"
+	"github.com/anyproto/protobuf/io"
+	"github.com/anyproto/protobuf/test"
 	goio "io"
 	"math/rand"
 	"testing"
@@ -165,7 +165,7 @@ func TestVarintNoClose(t *testing.T) {
 	}
 }
 
-//issue 32
+// issue 32
 func TestVarintMaxSize(t *testing.T) {
 	buf := newBuffer()
 	writer := io.NewDelimitedWriter(buf)

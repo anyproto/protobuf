@@ -5,8 +5,8 @@ package imports
 
 import (
 	fmt "fmt"
-	proto "github.com/gogo/protobuf/proto"
-	test_a_1 "github.com/gogo/protobuf/protoc-gen-gogo/testdata/imports/test_a_1"
+	proto "github.com/anyproto/protobuf/proto"
+	test_a_1 "github.com/anyproto/protobuf/protoc-gen-gogo/testdata/imports/test_a_1"
 	math "math"
 )
 
