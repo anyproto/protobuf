@@ -2973,8 +2973,7 @@ func MarshalAppend(buf []byte, pb Message) ([]byte, error) {
 		siz := m.XXX_Size()
 		if cap(buf) < len(buf)+siz {
 			newBuf := make([]byte, 0, len(buf)+siz)
-			copy(newBuf, buf)
-			buf = newBuf
+			buf = append(newBuf, buf...)
 		}
 		return m.XXX_MarshalAppend(buf, len(buf)+siz)
 	}
